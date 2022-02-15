@@ -1,42 +1,61 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
+using System;
 
 public class PuzzleA : Singleton<PuzzleA>
 {
     public GameObject[] pieces;
 
-    private int[] currentRotationOfPiece;
+    private float[] currentRotationOfPiece;
 
-    private int[] randomRotations = new int[] { 90, 180, 270 };
+    private float[] randomRotations = new float[] { 90f, 180f, 270f };
 
     // Start is called before the first frame update
     void Start()
     {
-        for (int i = 0; i < pieces.Length; i++) {
-            GameObject piece = pieces[i];
-            int zRotation = Random.Range(0, randomRotations.Length);
-            currentRotationOfPiece[i] = zRotation;
-            piece.transform.Rotate(0, 0, zRotation);
+        Logger.Instance.Log("A starts");
+        try
+        {
+            currentRotationOfPiece = new float[pieces.Length];
+            for (int i = 0; i < pieces.Length; i++)
+            {
+                GameObject piece = (GameObject)pieces.GetValue(i);
+                float zRotation = randomRotations[UnityEngine.Random.Range(0, randomRotations.Length)];
+                Logger.Instance.Log("random=" + i + zRotation);
+                currentRotationOfPiece.SetValue(zRotation, i);
+                piece.transform.Rotate(0, 0, zRotation);
+            }
+        
+            Logger.Instance.Log("ro:"+currentRotationOfPiece[0]);
         }
-        Logger.Instance.Log("ro:"+currentRotationOfPiece.ToString());
+        catch (Exception e)
+        {
+            Logger.Instance.Log("ro st err-"+ e);
+        }
     }
 
     // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    void Update() {}
 
     public void RotatePiece(int pieceIndex)
     {
-        pieces[pieceIndex].transform.Rotate(0, 0, 90f);
-        int newRotation = (int)(pieces[pieceIndex].transform.rotation.eulerAngles.z);
-        currentRotationOfPiece[pieceIndex] = newRotation;
-
-        if (arePiecesCorrect())
+        try
         {
-            Logger.Instance.Log("DONE!");
+            pieces[pieceIndex].transform.Rotate(0, 0, 90f);   
+            float newRotation = pieces[pieceIndex].transform.rotation.eulerAngles.z;
+
+            Logger.Instance.Log("RP3 " + pieceIndex);
+
+            currentRotationOfPiece.SetValue(newRotation, pieceIndex);
+            Logger.Instance.Log("RP4");
+            Logger.Instance.Log("rot=" + pieceIndex + newRotation + (newRotation == 0f));
+            if (arePiecesCorrect())
+            {
+                Logger.Instance.Log("DONE!");
+            }
+        }
+        catch (Exception e)
+        {
+            Logger.Instance.Log("RP E-" + e);
         }
     }
 
@@ -45,7 +64,7 @@ public class PuzzleA : Singleton<PuzzleA>
         bool correct = true;
         for (int i = 0; i < pieces.Length; i++)
         {
-            GameObject piece = pieces[i];
+            GameObject piece = (GameObject)pieces.GetValue(i);
             correct = (int)(piece.transform.rotation.eulerAngles.z) == 0;
             if (!correct)
             {
